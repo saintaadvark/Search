@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <malloc.h>
+#include <stdbool.h>
 #define MAX_VERTICES 500
 #define MAX_EDGES 1000
 #define FILLER_WORDS 500
@@ -8,6 +9,8 @@
 #define INIT_GRAPH 0x00000004
 #define INIT_VERTEX 0x00000008
 #define INIT_ALLOCATE 0x00000010
+#define LEFT_ROTATE 1
+#define RIGHT_ROTATE 0
 #define TRUE 1
 #define FALSE 0
 #define USE_HASHMAP 0	// Use a tree or hashmap for adjacency list?
@@ -22,6 +25,8 @@
 #define GET_LEFT(parentNode)((vertex*)((*parentNode)->left))
 #define GET_RIGHT(parentNode)((vertex*)((*parentNode)->right))
 
+enum color {red, black};
+
 typedef struct acronym {
 	char* acro;
 	char* meaning;
@@ -30,9 +35,11 @@ typedef struct acronym {
 
 typedef struct vertex {
 	struct acronym* acro;
-	struct vertex* next;
+	struct vertex* next;	// make this a union with parent
 	struct vertex* left;
 	struct vertex* right;
+	struct vertex* parent;
+	enum color color;
 } vertex;
 
 typedef struct graph {

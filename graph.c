@@ -5,27 +5,14 @@
 #include "graph.h"
 #include "graph_book.h"
 
-
-// Not that trivial, just return for today
+// Not that trivial, just return for today.
+// This function needs to take a sentence and
+// eviscerate it of all 'filler words', 
+// returning a data structure with only 
+// the words that matter stored sequentially.
 void build_word_list(vertex* vert)
 {
 	return;
-/*
-	char* string = vert->acro->meaning;
-	int slen = strlen(string),curr=0,start=0;
-	while(curr<slen) {
-		if (string[curr] == ' ') {
-			string[curr] = '\0';
-			if (!fillercheck(sum)) {
-				
-			}
-			sum = 0;
-		}
-		sum += (short) string[curr];
-	}
-	
-	return;
-*/
 }
 
 // function add_vertex: 
@@ -38,9 +25,16 @@ void add_vertex(char* acro, char* meaning)
 {
 	vertex* vert;
 	int i=0;
+
 	init(0, (char**)&vert, INIT_VERTEX);
 	vert->acro->acro = (char*)malloc(sizeof(acro));
+	if (vert->acro->acro == NULL)
+		assert(0);
+
 	vert->acro->meaning = (char*)malloc(sizeof(meaning));
+	if (vert->acro->meaning == NULL)
+		assert(0);
+
 	strcpy(vert->acro->acro, acro);
 	strcpy(vert->acro->meaning, meaning);
 	
@@ -49,8 +43,7 @@ void add_vertex(char* acro, char* meaning)
 	if (USE_HASHMAP)  
 		push(vert);
 	else
-		Insert(&root, vert);
-
+		RBInsert(&root, vert, NULL);
 }
 
 int main()
@@ -66,7 +59,7 @@ int main()
 	init_filler_list();
 	root = NULL;
 
-	fp=fopen("internetslang2", "rw");
+	fp=fopen("internetslang", "rw");
 	for(nline=0; fgets(acro, 100, fp); nline++) {
 		if (is_upper(acro[1]) == TRUE) {
 			fgets(meaning, 100, fp);
@@ -74,17 +67,18 @@ int main()
 		}
 	}
 	fclose(fp);
-
-	while (1) {
-		scanf("%s",acro);
-		printf("%s\n",acro);
-		vert = Search(&root, acro);
-		if (vert)
-			printf("======%s\n",((vertex*)(*vert))->acro->meaning);
-	}
 	
-	if (DBG)
+	if (!DBG) {
+		while (1) {
+			scanf("%s",acro);
+			printf("%s\n",acro);
+			vert = Search(&root, acro);
+			if (vert)
+				printf("======%s\n",((vertex*)(*vert))->acro->meaning);
+		}
+	} else {
 		Traverse(root);
+	}
 	
 	return 0;
 }

@@ -1,1 +1,19 @@
 Searching...
+
+Sat Dec24: More verbose commit comments starting today.
+Tree is obviously biased if we add keys alphabetically. Need a data structure that can manage memory and time efficiently and is open to multi threaded perf, whatever it is, it's going to need to rotate. 'it' will probably be an RBT.
+
+1. Add parent pointers to tree. 
+2. Implement rotation left and right.
+
+Implemented RBT but run out of memory at about 1000 acronyms and their defs. Possible solutions include:
+1. add 20 acronyms per node: modify searcher to stop at start/end range and perform binary search within array.
+2. maintain most popular acronyms in tree and just lookup others in file. 
+	How would we find most popular?
+	Need to Implement delete for this.
+	splay tree?
+	
+3. add 20/node but only when we hit 800. That way by then each word might have 20 search connections and we can add related nodes in the same group.
+	Search becomes a problem unless we maintain a subsidiary array for the acronyms. This appproach seems sucky, but FWIW.
+4. threads wont alleviate the problem but processes might as we can reply on os to write to disk. let each process deal w/ an alphabet and report back. We'd need to use pipes and stuff to communicate though =(
+

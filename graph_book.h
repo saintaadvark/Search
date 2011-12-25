@@ -38,12 +38,18 @@ void init(int arraysize, char* array[], int bitmask)
 	// Currently only allocats array of bytes
 	if ((bitmask & INIT_ALLOCATE) != 0) {
 		*(char**)array = (char*)malloc(arraysize*sizeof(char));	
+		if (!array)
+			goto cleanup;
+
 		for(i=0; i<arraysize; i++)
 			array[i] = NULL;
 	}
 
 	if ((bitmask & INIT_STACK) != 0) {
 		vstack = (vertex**)malloc(MAX_VERTICES*sizeof(void*));
+		if (!vstack)
+			goto cleanup;
+
 		stacktop = 0;	
 		for (i=0; i<MAX_VERTICES; i++)
 			vstack[i] = NULL;
@@ -52,18 +58,32 @@ void init(int arraysize, char* array[], int bitmask)
 
 	if ((bitmask & INIT_GRAPH) != 0) {
 		((graph*)(array))->vstack = vstack;
-		((graph*)(array))->vparents = (int*)malloc(sizeof(int)*MAX_VERTICES);
+		((graph*)(array))->vparents = (int*)malloc(sizeof(int)*MAX_VERTICES);	
 		((graph*)(array))->nvertices = MAX_VERTICES;
 	}
 	if ((bitmask & INIT_VERTEX) != 0) {
 		(*(vertex**)(array)) = (vertex*)malloc(sizeof(vertex));
+		if (!*(array))
+			goto cleanup;
+		
+		((vertex*)(*array))->acro = NULL;
 		((vertex*)(*array))->acro = (acronym*)malloc(sizeof(acronym));
+		if (!(((vertex*)(*array))->acro))
+			goto cleanup;
+
 		((vertex*)(*array))->acro->acro = NULL;
 		((vertex*)(*array))->acro->meaning = NULL;
 		((vertex*)(*array))->left = NULL;
 		((vertex*)(*array))->right = NULL;
 		((vertex*)(*array))->next = NULL;
+		((vertex*)(*array))->parent = NULL;
+		((vertex*)(*array))->color = red;
 	}
+	
+	return;
+	
+	cleanup:
+		assert(0);
 }
 
 // function: Push
