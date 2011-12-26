@@ -1,7 +1,8 @@
 Searching...
 
 Sat Dec24: More verbose commit comments starting today.
-Tree is obviously biased if we add keys alphabetically. Need a data structure that can manage memory and time efficiently and is open to multi threaded perf, whatever it is, it's going to need to rotate. 'it' will probably be an RBT.
+Tree is obviously biased if we add keys alphabetically. Need a data structure that can manage memory and time efficiently and is open to multi threaded perf, whatever 
+it is, it's going to need to rotate. 'it' will probably be an RBT.
 
 1. Add parent pointers to tree. 
 2. Implement rotation left and right.
@@ -15,5 +16,24 @@ Implemented RBT but run out of memory at about 1000 acronyms and their defs. Pos
 	
 3. add 20/node but only when we hit 800. That way by then each word might have 20 search connections and we can add related nodes in the same group.
 	Search becomes a problem unless we maintain a subsidiary array for the acronyms. This appproach seems sucky, but FWIW.
-4. threads wont alleviate the problem but processes might as we can reply on os to write to disk. let each process deal w/ an alphabet and report back. We'd need to use pipes and stuff to communicate though =(
+4. threads wont alleviate the problem but processes might as we can reply on os to write to disk. let each process deal w/ an alphabet and report back. We'd need to 
+	use pipes and stuff to communicate though =(
 
+Sun Dec 25: Merry Christmas.
+Added 'disksearch.c'. Stepwise:
+1. create a thread pool.
+1. thread '1' scans file and notes offset in bytes for each alphabet range in a lookup table.
+2. each string of input is posted as a future. threads grab future according to availability and execute search function.
+3. search function checks byte offset for acronym string[0], and performs a binary search within range of that alphabet, for the acronym. Binary search terminates 
+	either when the word is found or when search has been narrowed down to size DISKBLOCK, on the expectation that a linear search within DISKBLOCK will be cheap 
+	since it's probably already in L1/L2 cache. 	
+This approach seems fast enough, and scalable. Caveats noted in comments in disksearch.c.
+
+No additional code has gone into the tree cache, but from a design perspective, if the entire english dictionary (just the words) will fit in RAM we've lucked out. 
+1. Everytime someone types in a word, say 'Live', send a thread through the acronym list looking for all acronyms with the word 'Live' in it's meaning. 
+2. Create a node for 'Live' and add to it a list of acronyms that have 'Live' in their definition. Cache this in a RBT or a splay tree.
+3. The second time someone asks for live we have the list of acronyms and all we need to do is fork multiple threads to find each acronym in the file. 
+The first time will unfortunately be slow unless the dictionsry tree will fit before hand.
+
+Not sure how this will change with the recommendations concept. This will achieve only the first half of search (i.e related results of input). To achieve 
+recommendations the acronyms themselves will need nodes in the graph. Memory is fast becoming dear.

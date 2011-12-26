@@ -1,7 +1,8 @@
 #include "graph.h"
-#include "tree_book.h"
-#include<string.h>
+//#include "tree_book.h"
+#include <string.h>
 
+vertex* root;
 // O(n)
 void Traverse(vertex *node)
 {
@@ -174,6 +175,7 @@ vertex** Search(vertex **parentNode, char* string)
 	else if (strvalue < 0)
 		return Search((GET_RIGHT_REF(parentNode)), string);
 }
+
 
 /*
 // O(logn)

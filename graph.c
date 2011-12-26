@@ -3,7 +3,10 @@
 #include <string.h>
 #include <assert.h>
 #include "graph.h"
-#include "graph_book.h"
+#include "tree_book.h"
+
+// Todo free malloc arg structs
+// make threads wait on findfilesegmentswrapper
 
 // Not that trivial, just return for today.
 // This function needs to take a sentence and
@@ -46,35 +49,55 @@ void add_vertex(char* acro, char* meaning)
 		RBInsert(&root, vert, NULL);
 }
 
+// Function: main 
+// Synopsis: grabs user input and searches.
+// return: void 
 int main()
 {
 	graph agraph;
-	int i, nline, nacro;
+	int i, nline, nacro, c=0;
 	vertex** vert;
 	char acro[100], meaning[100], chbang;
 	FILE *fp;
-	
+	thread_pool* tpcb;
+	future* qfuture;	
+	argstruct *args;
+
 	init(0, (char**)(&agraph), INIT_GRAPH);
 	init(MAX_VERTICES, (char**)vstack, INIT_STACK);
 	init_filler_list();
 	root = NULL;
 
-	fp=fopen("internetslang", "rw");
-	for(nline=0; fgets(acro, 100, fp); nline++) {
-		if (is_upper(acro[1]) == TRUE) {
-			fgets(meaning, 100, fp);
-			add_vertex(acro, meaning);
+	if(CREATEGRAPH) {
+		fp=fopen("internetslang", "r");
+		for(nline=0; fgets(acro, 100, fp); nline++) {
+			if (is_upper(acro[1]) == TRUE) {
+				fgets(meaning, 100, fp);
+				add_vertex(acro, meaning);
+			}
 		}
+		fclose(fp);
 	}
-	fclose(fp);
 	
+	tpcb = thread_pool_new(10);
+	args = (argstruct*)malloc(sizeof(argstruct));
+	args->file = NULL;
+	args->acronym = NULL;
+	qfuture = thread_pool_submit(tpcb, FindFileSegmentsWrapper, (void*)args);
+
 	if (!DBG) {
 		while (1) {
 			scanf("%s",acro);
-			printf("%s\n",acro);
+			args = (argstruct*)malloc(sizeof(argstruct));
+			args->acronym = (char*)malloc(strlen(acro));
+			strcpy(args->acronym, acro); 
+			printf("%s\n",args->acronym);
+			thread_pool_submit(tpcb, SearchFileWrapper, (void*)args);
+			/*
 			vert = Search(&root, acro);
 			if (vert)
 				printf("======%s\n",((vertex*)(*vert))->acro->meaning);
+			*/
 		}
 	} else {
 		Traverse(root);
@@ -82,3 +105,4 @@ int main()
 	
 	return 0;
 }
+
