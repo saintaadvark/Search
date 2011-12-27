@@ -3,7 +3,6 @@
 #include <string.h>
 #include <assert.h>
 #include "graph.h"
-#include "tree_book.h"
 
 // Todo free malloc arg structs
 // make threads wait on findfilesegmentswrapper
@@ -24,7 +23,7 @@ void build_word_list(vertex* vert)
 //	2. A list of edges within each vertex
 // 	This function adds a vertex to the first.
 // return: void	    	                      
-void add_vertex(char* acro, char* meaning)
+void add_vertex(char* acro)
 {
 	vertex* vert;
 	int i=0;
@@ -33,14 +32,7 @@ void add_vertex(char* acro, char* meaning)
 	vert->acro->acro = (char*)malloc(sizeof(acro));
 	if (vert->acro->acro == NULL)
 		assert(0);
-
-	vert->acro->meaning = (char*)malloc(sizeof(meaning));
-	if (vert->acro->meaning == NULL)
-		assert(0);
-
 	strcpy(vert->acro->acro, acro);
-	strcpy(vert->acro->meaning, meaning);
-	
 	build_word_list(vert);
 
 	if (USE_HASHMAP)  
@@ -69,12 +61,9 @@ int main()
 	root = NULL;
 
 	if(CREATEGRAPH) {
-		fp=fopen("internetslang", "r");
+		fp=fopen("dictionary", "r");
 		for(nline=0; fgets(acro, 100, fp); nline++) {
-			if (is_upper(acro[1]) == TRUE) {
-				fgets(meaning, 100, fp);
-				add_vertex(acro, meaning);
-			}
+			add_vertex(acro);
 		}
 		fclose(fp);
 	}

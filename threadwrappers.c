@@ -1,3 +1,7 @@
+// File: threadwrappers.c
+// synopsis: contains wrappers for every function we wish 
+// to post via futures to a threadpool.
+
 #include "graph.h"
 
 void* SearchFileWrapper(void* args)

@@ -14,10 +14,10 @@
 #define TRUE 1
 #define FALSE 0
 #define USE_HASHMAP 0	// Use a tree or hashmap for adjacency list?
-#define DBG 0
+#define DBG 1
 #define IS_LEFTCHILD 1
 #define IS_RIGHTCHILD 0
-#define CREATEGRAPH 0
+#define CREATEGRAPH 1
 
 // Tree traversal macros
 // Given a pointer to a vertex in the tree lookup representation 
@@ -35,7 +35,6 @@ enum nodetype {treeroot, lchild, rchild};
 // Basic unit of an acronym.
 typedef struct acronym {
 	char* acro;
-	char* meaning;
 	char* wordlist;
 } acronym;
 

@@ -1,30 +1,39 @@
 #include "graph.h"
-//#include "tree_book.h"
 #include <string.h>
 
 vertex* root;
+
+// function: Traverse
+// synopsis: Simple in order traversal
 // O(n)
+// return: void
 void Traverse(vertex *node)
 {
 	if (node == NULL) {
 		return;
 	}
 
-	// Simple in order traversal
 	Traverse(node->left);
-	printf("%s %s \n----\n",node->acro->acro, node->acro->meaning);
+	printf("%s \n----\n",node->acro->acro);
 	if (node->parent)
 		printf("===parent=%s\n----\n",node->parent->acro->acro);
 	Traverse(node->right);
 }
 
-//Original tree:	
+// function: Rotate
+// synopsis: rigth rotate: 
+//	1. left child = successor
+//	2. parent = sucessors right child
+//	3. sucessors right subtree = parents left subtree
+// left rotate is the opposite. Each case handles seperately,
+// makes it easier to debug.
+// Original tree:	
 //          M        
 //       /    \
 //      G      P
 //     / \    / \
 //    C   J  N   Q
-//
+// return: void
 void Rotate(vertex* parent, bool dir)
 {
 	vertex *M, *G, *J, *P, *N;
@@ -71,7 +80,10 @@ void Rotate(vertex* parent, bool dir)
 	}
 }
 
+// function: Insert
+// synopsis: binary tree insert
 // O(logn)
+// return: void
 void Insert(vertex **parentNode, vertex *childNode, vertex *parentBase)
 {
 	if (!(*parentNode)) {
@@ -92,6 +104,12 @@ void Insert(vertex **parentNode, vertex *childNode, vertex *parentBase)
 	return;
 }
 
+// function: RedBlackInsert
+// synpsis: does a binary insert of a 'red' node and readjusts the
+// tree to have o(logn) height. I chose a rb tree because it first
+// 'finds' the spot to perform the rotation using colors. Since these
+// colors are just bit flips this finding operation doesnt need a lock,
+// making it faster than most other trees for multi threading. 
 void RBInsert(vertex **parentNode, vertex *childNode, vertex *parentBase)
 {
 	vertex *x = childNode, *grandx;
@@ -109,6 +127,7 @@ void RBInsert(vertex **parentNode, vertex *childNode, vertex *parentBase)
 		//     N.  Q.        N   Q
 		//    /	   	    /
 		//   O.	           O.
+		// Note: parent-child dir doesn't matter in Case 1
 		if (grandx &&
 		    grandx->left &&
 		    grandx->right &&
@@ -129,7 +148,7 @@ void RBInsert(vertex **parentNode, vertex *childNode, vertex *parentBase)
 			//	   R.		  R.
 			//	  /		   \
 			//	 P.		    P.
-			if (parenttype == rchild && childtype == lchild) {
+			if (childtype == lchild) {
 				Rotate(x->parent, RIGHT_ROTATE);
 				continue;
 			}
@@ -139,7 +158,7 @@ void RBInsert(vertex **parentNode, vertex *childNode, vertex *parentBase)
 			//	    R.	      M.  P.
 			//	     \
 			//	      P.
-			if (parenttype == rchild && childtype == rchild) { 
+			if (childtype == rchild) { 
 				x->parent->color = black;
 				x->parent->parent->color = red;
 				Rotate(x->parent->parent, LEFT_ROTATE);
@@ -158,14 +177,16 @@ void RBInsert(vertex **parentNode, vertex *childNode, vertex *parentBase)
 	root->color = black;
 }
 
+// function: Search
+// synopsis: searches tree for given string
 // O(logn)
+/// return: address of vertex containing string
 vertex** Search(vertex **parentNode, char* string)
 {
 	if(!(*parentNode))
 		return NULL;
 
 	int strvalue = strncmp((*parentNode)->acro->acro, string, strlen(string));
-//	printf("comparing %s and %s, value %d\n",(*parentNode)->acro->acro, string, strvalue);
 	if (strvalue == 0) {
 		return parentNode;
 	}
@@ -177,6 +198,10 @@ vertex** Search(vertex **parentNode, char* string)
 }
 
 
+// Following are the regular tree implementations of delete, min etc.
+// There is no current need for them, so Ive put off porting them to
+// the Red Black tree. The cases involved in deletion seem daunting, to
+// say the least. 
 /*
 // O(logn)
 thread_t **Min(thread_t **parentNode)

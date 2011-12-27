@@ -3,7 +3,6 @@
 // graph file.
 
 #include "graph.h"
-#include "tree_book.h"
 #include <string.h>
 #include <assert.h>
 
@@ -89,7 +88,6 @@ void init(int arraysize, char* array[], int bitmask)
 			goto cleanup;
 
 		((vertex*)(*array))->acro->acro = NULL;
-		((vertex*)(*array))->acro->meaning = NULL;
 		((vertex*)(*array))->left = NULL;
 		((vertex*)(*array))->right = NULL;
 		((vertex*)(*array))->next = NULL;
