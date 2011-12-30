@@ -49,49 +49,30 @@ int main()
 	graph agraph;
 	int i, nline, nacro, c=0;
 	vertex** vert;
-	char acro[100], meaning[100], chbang;
+	char acro[100];
 	FILE *fp;
 	thread_pool* tpcb;
-	future* qfuture;	
-	argstruct *args;
+	future* qfuture;
+
+	// Fork off a thread to handle acronym searche the 
+	// expensive way while while we fuel up our graph.
+	tpcb = thread_pool_new(10);
+	qfuture = thread_pool_submit(tpcb, expensive_file_search_wrapper, (void*)tpcb);
 
 	init(0, (char**)(&agraph), INIT_GRAPH);
 	init(MAX_VERTICES, (char**)vstack, INIT_STACK);
 	init_filler_list();
 	root = NULL;
 
-	if(CREATEGRAPH) {
-		fp=fopen("dictionary", "r");
-		for(nline=0; fgets(acro, 100, fp); nline++) {
-			add_vertex(acro);
-		}
-		fclose(fp);
+	fp=fopen("dictionary", "r");
+	for(nline=0; fgets(acro, 100, fp) && CREATETREE; nline++) {
+		add_vertex(acro);
 	}
-	
-	tpcb = thread_pool_new(10);
-	args = (argstruct*)malloc(sizeof(argstruct));
-	args->file = NULL;
-	args->acronym = NULL;
-	qfuture = thread_pool_submit(tpcb, FindFileSegmentsWrapper, (void*)args);
+	fclose(fp);
 
-	if (!DBG) {
-		while (1) {
-			scanf("%s",acro);
-			args = (argstruct*)malloc(sizeof(argstruct));
-			args->acronym = (char*)malloc(strlen(acro));
-			strcpy(args->acronym, acro); 
-			printf("%s\n",args->acronym);
-			thread_pool_submit(tpcb, SearchFileWrapper, (void*)args);
-			/*
-			vert = Search(&root, acro);
-			if (vert)
-				printf("======%s\n",((vertex*)(*vert))->acro->meaning);
-			*/
-		}
-	} else {
-		Traverse(root);
-	}
-	
+	// really need to implement threadpool kill
+	future_get(qfuture);	
+
 	return 0;
 }
 

@@ -1,33 +1,24 @@
-// File: graph_book.C
-// Synopsis: Functions and globals specific to the main 
-// graph file.
-
+/**
+ * @file: disksearch.c 
+ * @brief: 
+ * @author:
+ * @bug:
+ * 
+ */
 #include "graph.h"
 #include <string.h>
 #include <assert.h>
 
-int fillerlist[FILLER_WORDS];
-int fillermax;
-vertex** vstack;	// the hashmap, NULL if tree representation
 int stacktop;		// top of stack in hashmap representation
+
+int fillerwords[FILLERWORDS];
+struct acrovert *vstack[MAX_ACRO];
+int fillerwordstop;
 
 // All helper functions need a new home
 // Helper 1
 void init_filler_list()
 {
-	FILE* fp;
-	char filler[100];
-	int i, sum=0;
-
-	fp=fopen("fillerwords", "rw");
-	for(fillermax=0; fgets(filler, 100, fp) && (fillermax < FILLER_WORDS); fillermax++) {
-		for(i=0; i<strlen(filler); i++)
-			sum += (short)filler[i];
-		fillerlist[fillermax] = sum;
-		sum=0;
-	}
-	fillermax -= 1;
-	fclose(fp);
 
 	return;	
 }
@@ -62,10 +53,6 @@ void init(int arraysize, char* array[], int bitmask)
 	}
 
 	if ((bitmask & INIT_STACK) != 0) {
-		vstack = (vertex**)malloc(MAX_VERTICES*sizeof(void*));
-		if (!vstack)
-			goto cleanup;
-
 		stacktop = 0;	
 		for (i=0; i<MAX_VERTICES; i++)
 			vstack[i] = NULL;
@@ -106,7 +93,7 @@ void init(int arraysize, char* array[], int bitmask)
 //	Push a vertex pointer onto adjacency
 //	list stack. 
 // return: void
-void push(vertex* vert)
+void push(acrovert* vert)
 {
 	vstack[stacktop] = vert;
 	stacktop++;

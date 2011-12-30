@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "threadPool.h"
 #include "graph.h"
+#include <assert.h>
 
 //future* world_future = NULL;
 
@@ -32,6 +33,7 @@ void enqueue(future* qfuture, thread_pool* tpcb)
 future* dequeue(thread_pool* tpcb)
 {
 	if (tpcb->future_head == NULL){
+		assert(tpcb->future_tail == NULL);
 		return tpcb->future_head;
 	}
 
@@ -66,10 +68,10 @@ void* thread_pool_start (void* tp_controlblock)
 			pthread_cond_wait(&tpcb->cvar_futures, &tpcb->mutex_futures);
 			qfuture = dequeue(tpcb);
 		}
+		pthread_mutex_unlock(&tpcb->mutex_futures);
 		qfuture->func(qfuture->data);
 		sem_post(&(qfuture->sem_Callback));
 	}
-	pthread_mutex_unlock(&tpcb->mutex_futures);
 	return NULL;
 }
 
@@ -94,7 +96,7 @@ struct future* thread_pool_submit (thread_pool* tpcb, void*(*func)(void*), void*
 	newfuture->data = data;
 	sem_init(&newfuture->sem_Callback,0 ,0);
 
-	// Caveat: the cond signal doesnt need 
+	// Note: the cond signal doesnt need 
 	// to be within the lock. Eitherway it
 	// doesnt guarantee any order of execution.
 	pthread_mutex_lock(&tpcb->mutex_futures);

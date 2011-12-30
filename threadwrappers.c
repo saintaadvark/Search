@@ -4,14 +4,20 @@
 
 #include "graph.h"
 
-void* SearchFileWrapper(void* args)
+void* search_file_wrapper(void* args)
 {
-	SearchFile(((argstruct*)args)->file, ((argstruct*)args)->acronym);
+	search_file(((argstruct*)args)->file, ((argstruct*)args)->acronym);
 	return NULL;
 }
 
-void* FindFileSegmentsWrapper(void* args)
+void* find_file_segments_wrapper(void* args)
 {
-	FindFileSegments(((argstruct*)args)->file);
+	find_file_segments(((argstruct*)args)->file);
+	return NULL;
+}
+
+void* expensive_file_search_wrapper(void* args)
+{
+	expensive_file_search((thread_pool*)args);
 	return NULL;
 }

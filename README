@@ -1,6 +1,6 @@
 Searching...
 
-Mon DEc 26: O(n) substring search, refactoring, commenting, all that cool stuff codes do from time to time.
+Mon DEc 26: O(n) substring search, refactoring, commenting, all that cool stuff coders do from time to time.
 Entire dictionary doesnt OOM, yay! on second though the reason for this is obvious, acronym definitions have the same string repeated = wasted bytes. dictionaries
 dont. Also, added substring search to disksearch.c, original naive plan was to:
 1. grab a dictionary word, add it to tree
@@ -17,7 +17,7 @@ up in the acronym list, doing a complete substring search for them is a cpu hog.
 	eg: FTASB = faster than a speeding bullet
 	    speeding has FTASB, FTASB has bullet
 	    search speeding and get FTASB and, say, BT (bullet time)
-ToDo:
+
 disksearch.c: Handle 'ing' case. speed needs results from speeding too. 
 threadPool.c: threadpool kill, free memory
 graph.c: restructure to build tree 'on demand' per node instead of loading entire dictionary
