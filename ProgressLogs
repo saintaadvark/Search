@@ -1,4 +1,7 @@
 Searching...
+====Sat Dec 31: suffix tree
+got slightly obsessed w/ concept of suffix tree to perform matching and finished it. will probably try to implement some form of auto complete, maybe in another branch.
+
 =====Fri Dec 30: build basic graph
 fork threads to handle expensive file based acronym search while we fuel up data structures.
 in the process of moving stuff from buildfillerlist.c to graph.c
