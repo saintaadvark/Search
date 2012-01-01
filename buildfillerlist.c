@@ -2,38 +2,189 @@
 #include <string.h>
 #include <assert.h>
 #include <malloc.h>
-#define FILLERWORDS 100
-#define MAX_ACRO 500
-#define TRUE 1
-#define FALSE 0
-
-typedef struct sentence_word{
-	char *word;
-	sentence_word* next;
-	short wordhash;
-} sentence_word;
-
-typedef struct {
-	char *acro;
-	sentence_word *wordlist;
-} acronym;
-
-typedef struct acrovert {
-	struct edge* next;
-	acronym* acro;	
-} acrovert;
-
-typedef struct edge {
-	struct edge* next;
-	struct acrovert* y;
-	struct acrovert* x;
-	int weight;
-} edge;
+#include "buildfillerlist.h"
 
 int fillerwords[FILLERWORDS];
 struct acrovert *vstack[MAX_ACRO];
 int stacktop;
 int fillerwordstop;
+edge *sorted_edge_list;
+
+static bool is_acronymline(char* acro);
+static void print_edge_acro(acrovert* x);
+static void print_kruskal_edge_list();
+static void print_word_list(acrovert* x);
+static int binarysearch(int* a, int min, int max, int element);
+static sentence_word* get_next_word(char* sentence, int i, int len);
+static void qsort(int *a, int max, int min);
+
+void dfs(acrovert* v)
+{
+	if (v == NULL)
+		return;
+		
+	v->fvisited = TRUE;
+	edge *e = v->next;
+	if (e && (e->y->fvisited == FALSE)) {
+		dfs (e->y);
+		while(e) {
+			printf("%s",e->y->acro->acro);
+			e = e->next;
+		}
+	}
+	printf("%s",v->acro->acro);
+}
+
+void add_acrovert(char* acro, char* meaning)
+{
+	acrovert* vert;
+	int i=0;
+
+	vert = (acrovert*)malloc(sizeof(acrovert));
+	if (!vert)
+		goto cleanup;
+	vert->fvisited = FALSE;
+	
+	vert->acro = NULL;
+	vert->acro = (acronym*)malloc(sizeof(acronym));
+	if (!(vert->acro))
+		goto cleanup;
+	vert->acro->acro = NULL;
+	vert->next = NULL;
+	
+	vert->set_parent = (set_union*)malloc(sizeof(set_union));
+	if (!(vert->set_parent))
+		goto cleanup;
+	vert->set_parent->set_parent = vert;
+	vert->set_parent->size = 1;
+
+	vert->acro->acro = (char*)malloc(strlen(acro));
+	if (vert->acro->acro == NULL)
+		goto cleanup;
+	strcpy(vert->acro->acro, acro);
+
+	// insert acronym into adjacency list
+	vstack[stacktop] = vert;
+	stacktop ++;
+	assert(stacktop <= MAX_ACRO);
+
+	// split the meaning of the acro into a linked list of words after removing
+	// filler words.	
+	vert->acro->wordlist = get_next_word(meaning, 0, strlen(meaning)); 
+
+	return; 	
+	cleanup:
+		assert(0);
+}
+
+void add_edge(acrovert* x, acrovert* y, int w, bool bidi, bool fkruskal)
+{
+	edge* newedge = (edge*)malloc(sizeof(edge));
+	if (!newedge)
+		goto cleanup;
+		
+	newedge->x = x;
+	newedge->y = y;
+	newedge->weight = w;
+	newedge->next = NULL;
+	
+	if (!fkruskal) {
+		newedge->next = x->next;
+		x->next = newedge;
+	if (bidi)
+		add_edge(y, x, w, FALSE, FALSE);	
+	} else {
+		add_edge_sorted(newedge);
+	}
+	return;
+	
+	cleanup:
+		assert(0);
+}
+
+bool findword(char* word, sentence_word* w2)
+{
+	while(w2) {
+		if (!strcmp(word, w2->word)) {
+			//printf("%s, %s\n",word, w2->word);
+			return TRUE;
+		}
+		w2 = w2->next;
+	}
+	return FALSE;
+}
+
+int documentdistance(sentence_word* w1, sentence_word* w2)
+{
+	int distance=0;
+	
+	// take every word in w1 and look for it in w2. if found add sum of common
+	// words ascii to distance/edge weight.
+	while(w1 != NULL) {
+		if (findword(w1->word, w2)) {
+			distance += w1->wordhash;
+		}
+		w1 = w1->next;
+	}
+	return distance;
+}
+
+int main()
+{
+	FILE *fp1, *fp2;
+	char string[100], acro[100], meaning[100];
+	int nline, j, slen=0, search=0, searchpos=0, i=0, distance=0;
+	sorted_edge_list = NULL;
+
+	// create a table of the sum of ascii characters of all filler words, then 
+	// sort it so we can quickly search within for a given hash string. This 
+	// functionality will be replaced by a suffix tree in due time.
+	fp1 = fopen("fillerwords", "r");
+	for(fillerwordstop = 0; fgets(string, 100, fp1); fillerwordstop++)  {
+		slen = strlen(string);
+		for(j = 0; j<slen; j++) {
+			fillerwords[fillerwordstop] += string[j];	
+		}
+	}
+	fclose(fp1);
+	qsort(fillerwords, (fillerwordstop - 1), 0);
+
+	// create array of all acronyms+meanings for the adjacency list of graph. 
+	fp2 = fopen("internetslang", "r");
+	for(nline = 0; fgets(acro, 100, fp2); nline++)  {
+		if (is_acronymline(acro) == TRUE) {
+			fgets(meaning, 100, fp2);
+			add_acrovert(acro, meaning);
+		}
+	}
+	fclose(fp2);
+
+	// for each acronym in the array compare the words in it's definition with 
+	// the words in the definitions of all other acronyms. add an edge if the 
+	// common words > 0, with weight ~proportional to length of common word. 	
+	for (i = 0; i < stacktop; i++) {
+		for (j = (i+1); j < stacktop; j++) {
+		        distance = documentdistance(vstack[i]->acro->wordlist, vstack[j]->acro->wordlist);
+			if (distance) {
+				add_edge(vstack[i], vstack[j], distance, BIDI, KRUSKAL);
+			}
+		}
+	}
+	
+	//for (i=0;i<stacktop; i++)	
+	//	print_edge_acro(vstack[i]);
+
+	print_kruskal_edge_list();
+    build_maximum_spanning_tree();
+    
+    for (i = 0; i < stacktop; i++) {
+    	//printf("=========dfs vertex %s",vstack[i]->acro->acro);
+    	//dfs(vstack[i]);
+    	print_edge_acro(vstack[i]);
+	}
+	
+	return 0;
+}
 
 inline void swap(int *a, int pos1, int pos2)
 {
@@ -110,16 +261,16 @@ sentence_word* get_next_word(char* sentence, int i, int len)
 	char a[100], *word;
 	sentence_word *s_word=NULL;
 	int j=0, searchpos=0;
-	short wordhash=10;
+	short wordhash=10; // TODO: manually insert \0 instead of this 
 
+	// compute a hash of the current word then search for it in fillerlist
 	for (; sentence[i] != ' ' && sentence[i] != '\0'; i++, j++) {
 		a[j] = sentence[i];
 		wordhash += a[j];
 	}
 	a[j] = '\0';
-
-	// Don't add filler words
-	searchpos = binarysearch(fillerwords, 0, (fillerwordstop-1), wordhash);		
+	searchpos = binarysearch(fillerwords, 0, (fillerwordstop-1), wordhash);
+			
 	if (fillerwords[searchpos] != wordhash) {
 
 		s_word = (sentence_word*)malloc(sizeof(sentence_word));
@@ -142,61 +293,6 @@ sentence_word* get_next_word(char* sentence, int i, int len)
 		assert(0);
 }
 
-void add_acrovert(char* acro, char* meaning)
-{
-	acrovert* vert;
-	int i=0;
-
-	//init(0, (char**)&vert, INIT_VERTEX);
-	vert = (acrovert*)malloc(sizeof(acrovert));
-	if (!vert)
-		goto cleanup;
-	
-	vert->acro = NULL;
-	vert->acro = (acronym*)malloc(sizeof(acronym));
-	if (!(vert->acro))
-		goto cleanup;
-
-	vert->acro->acro = NULL;
-	vert->next = NULL;
-
-	vert->acro->acro = (char*)malloc(strlen(acro));
-	if (vert->acro->acro == NULL)
-		goto cleanup;
-
-	strcpy(vert->acro->acro, acro);
-
-	vstack[stacktop] = vert;
-	stacktop ++;
-	assert(stacktop<= MAX_ACRO);
-	
-	vert->acro->wordlist = get_next_word(meaning, 0, strlen(meaning)); 
-
-	return; 	
-	cleanup:
-		assert(0);
-}
-
-void add_edge(acrovert* x, acrovert* y, int w, bool bidi)
-{
-	edge* newedge = (edge*)malloc(sizeof(edge));
-	if (!newedge)
-		goto cleanup;
-
-	newedge->x = x;
-	newedge->y = y;
-	newedge->weight = w;
-	newedge->next = x->next;
-	x->next = newedge;
-	
-	if (bidi)
-		add_edge(y, x, w, FALSE);	
-	return;
-
-	cleanup:
-		assert(0);
-}
-
 void print_word_list(acrovert* x)
 {
 	sentence_word *w = x->acro->wordlist;
@@ -204,7 +300,22 @@ void print_word_list(acrovert* x)
 		printf("%s ",w->word);
 		w=w->next;
 	}
-	printf("\n");
+}
+
+void print_kruskal_edge_list()
+{
+	edge *e = sorted_edge_list;
+	while(e) {
+		printf("\n");
+		assert(e->x && e->y);
+		printf("acronyms %s ", e->x->acro->acro);
+		print_word_list(e->x);
+		printf("and %s", e->y->acro->acro);
+		print_word_list(e->y);
+		printf("have weight %d",e->weight);											
+		e=e->next;
+		printf("\n");
+	}
 }
 
 void print_edge_acro(acrovert* x)
@@ -229,72 +340,4 @@ bool is_acronymline(char* acro)
 		return TRUE;
 	else
 		return FALSE;
-}
-
-bool findword(char* word, sentence_word* w2)
-{
-	while(w2) {
-		if (!strcmp(word, w2->word)) {
-			//printf("%s, %s\n",word, w2->word);
-			return TRUE;
-		}
-		w2 = w2->next;
-	}
-	return FALSE;
-}
-
-int documentdistance(sentence_word* w1, sentence_word* w2)
-{
-	int distance=0;
-	while(w1 != NULL) {
-		if (findword(w1->word, w2)) {
-			//printf("success~\n");
-			distance += w1->wordhash;
-		}
-		w1 = w1->next;
-	}
-	return distance;
-}
-
-int main()
-{
-	FILE *fp1, *fp2;
-	char string[100], acro[100], meaning[100];
-	int nline, j, slen=0, search=0, searchpos=0, i=0, distance=0;
-
-	fp1 = fopen("fillerwords", "r");
-	for(nline=0; fgets(string, 100, fp1); nline++)  {
-		slen = strlen(string);
-		for(j=0; j<slen; j++) {
-			fillerwords[nline] += string[j];	
-			fillerwordstop ++;
-		}
-	}
-	fclose(fp1);
-
-	qsort(fillerwords, (nline-1), 0);
-
-	fp2 = fopen("internetslang", "r");
-	for(nline=0; fgets(acro, 100, fp2); nline++)  {
-		if (is_acronymline(acro) == TRUE) {
-			fgets(meaning, 100, fp2);
-			add_acrovert(acro, meaning);
-		}
-	}
-	fclose(fp2);
-	
-	for (i=0;i<stacktop;i++) {
-		for (j=(i+1);j<stacktop;j++) {
-		        distance=documentdistance(vstack[i]->acro->wordlist, vstack[j]->acro->wordlist);
-			if (distance) {
-				//printf("acro1=%s,acro2=%s, distance=%d\n",vstack[i]->acro->acro, vstack[j]->acro->acro,distance);
-				add_edge(vstack[i], vstack[j], distance, TRUE);
-			}
-		}
-	}
-	
-	for (i=0;i<stacktop; i++)	
-		print_edge_acro(vstack[i]);
-
-	return 0;
 }

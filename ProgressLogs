@@ -1,4 +1,10 @@
 Searching...
+
+====Sat Dec 31: Happy New Year. ~Commit time: 11.45PM, i remain lifeless.
+kruskals algorithm to find strongly connected components seems to work. now a search for acronym A should produce a list of recommendations based on the maximum spanning
+tree, unless A is a strongly connected component of its own i.e. the words in its definition are unique. What remains is to connect this framework to both the suffix tree
+and to the dictionary's red and black tree. dfs needs some work, too tired to investiaget but somewhere around adding each edge twice (bidirectionality).
+
 ====Sat Dec 31: suffix tree
 got slightly obsessed w/ concept of suffix tree to perform matching and finished it. will probably try to implement some form of auto complete, maybe in another branch.
 
