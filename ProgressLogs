@@ -1,4 +1,13 @@
 Searching...
+===Sun Jan1: 2012
+dfs+articulation vertices code  unit tested. articulation vertices gives us information about when poisonous recommendations creep in, and are pointers to where
+we may want human lexicographers to double check becuase theyre the only words that connect 2 otherwise strongly connected subcomponents. eg:
+ftasb: faster than a speeding bullet
+sol: speed of light
+lh: light headed
+sol = articulation vertex connecting results in search for bullet to things in (seemingly urelated) list of 'light headed' relations (if nothing else has back edge 
+from LH pool to ftasb pool).
+
 
 ====Sat Dec 31: Happy New Year. ~Commit time: 11.45PM, i remain lifeless.
 kruskals algorithm to find strongly connected components seems to work. now a search for acronym A should produce a list of recommendations based on the maximum spanning

@@ -24,8 +24,9 @@ typedef struct {
 typedef struct acrovert {
 	struct edge *next;
 	acronym *acro;	
-	struct set_union *set_parent;
 	bool fvisited;
+	int arrival_time;
+	struct set_union *set_parent;
 } acrovert;
 
 typedef struct set_union {
@@ -43,9 +44,12 @@ typedef struct edge {
 void add_edge_sorted(edge *newedge);
 void build_maximum_spanning_tree();
 void add_edge(acrovert* x, acrovert* y, int w, bool bidi, bool fkruskal);
+acrovert* dfs(acrovert* v);
+void print_edge_acro(acrovert* x);
 
 extern int fillerwords[FILLERWORDS];
 extern struct acrovert *vstack[MAX_ACRO];
 extern int stacktop;
 extern int fillerwordstop;
 extern edge *sorted_edge_list;
+extern int time;
