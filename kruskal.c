@@ -1,12 +1,12 @@
 #include "buildfillerlist.h"
 
 #define MIN(a,b)(a<b?a:b)
-int time;
+int dtime;
 
-void add_edge_sorted(edge *newedge);
+void add_edge_sorted(edge *newedge, edge* downedge, int skiplist_index);
 static edge* pop_edge();
-
-
+edge *skiplist_heads[(SKIP_SIZE+1)];
+	
 // dfs needs to record back edges so it can identify articulation vertices. 
 // These denote words that might have poisoned the recommendation list because
 // they're the only ones that connect 2 sub components of otherwise independent
@@ -23,32 +23,38 @@ acrovert* dfs(acrovert* v)
 	assert(v);
 	v->fvisited = TRUE;
 	
-	v->arrival_time = time++;
+	v->arrival_time = dtime++;
 	for(e = v->next; e != NULL; e = e->next) {
 	
 		// If we're going from an unvisited edge to a visited one which has 
 		// entry time less than ours its a back edge.
 		if (!(e->y->fvisited)) {
-			//print_edge_acro(e->y);
-			printf("====current edge %s to %s\n", e->x->acro->acro, e->y->acro->acro);	
+		
+			e->y->parent = v;
+			print_edge_acro(e->x, FALSE);	
+			printf("\n  recursing into %s ", e->y->acro->acro);
 			
 			// if vback returned is an ancestor it'll have an earlier entry time 
 			vback = dfs(e->y);
 			dfstime = MIN(v->arrival_time, vback->arrival_time);
 			
+			printf("\nreturning from %s, to ",e->y->acro->acro);
+			print_edge_acro(e->x, FALSE);	
+			
 			// If no back edges were found dfstime will be our own entry time, 
 			// we dont want to break for a perfectly sane tree edge return.
 			if (vback != v && (dfstime < v->arrival_time)) {
-				printf("=====backedge acro %s to parent %s\n",v->acro->acro, vback->acro->acro);
+				//do backedge stuff
 			}
 		} else if (e->y->arrival_time < v->arrival_time) {
 				
 				// each vertex returns itself unless it has a back edge, in 
 				// which case it returns the ancestor it has that edge with. 
 				vback = e->y;
+				if (vback != v->parent)
+					printf("=====backedge acro %s to parent %s\n",v->acro->acro, vback->acro->acro);
 		}
 	}
-	printf("v=%s",v->acro->acro);
 	return vback;
 }
 
@@ -94,9 +100,10 @@ void build_maximum_spanning_tree()
 		v1 = find(e->x);
 		v2 = find(e->y);
 		if (v1 != v2) {
-			add_edge(e->x, e->y, e->weight, BIDI, KRUSKAL);
+			add_edge(e->x, e->y, e->weight, BIDI, !KRUSKAL);
 			component_union(v1, v2);
 		} else {
+			//we only want to free 
 			free(e);
 		}
 		e = pop_edge();
@@ -105,9 +112,14 @@ void build_maximum_spanning_tree()
 }
 
 // add edge to sorted linked list
-void add_edge_sorted(edge *newedge)
+void add_edge_sorted(edge *newedge, edge *downedge, int skiplist_head_index)
 {
-	edge *temp1 = sorted_edge_list, *temp2 = NULL;
+	if (skiplist_head_index >= SKIP_SIZE) {
+		return;
+	}
+
+	edge *temp1 = skiplist_heads[skiplist_head_index], *temp2 = NULL, *skiplist_edge = NULL;
+	int randvar = 0;
 	while(temp1 && (temp1->weight > newedge->weight)) {
 		temp2 = temp1;
 		temp1 = temp1->next;
@@ -123,7 +135,28 @@ void add_edge_sorted(edge *newedge)
 		newedge->next = temp1;
 		sorted_edge_list = newedge;	
 	} else if (!temp2 && !temp1) {
-		sorted_edge_list = newedge;
+		skiplist_heads[skiplist_head_index] = newedge;
+	}
+	
+	// add the edge and assign it's down pointer. for 1st list this is NULL but
+	// for subsequent lists this is the newedge we just added. subsequent lists
+	// also need a malloc dupe of newedge to add to their own lists.
+	newedge->downedge = downedge;
+	
+	// flip a coin
+	srand(time(NULL));
+	randvar = (rand()%10 + 1);
+	
+	// onyl if element makes it to the first list will it make it to the others,
+	// with half probability at each level.
+	if (randvar >= 5) {
+		skiplist_edge = (edge*)malloc(sizeof(edge));
+
+		skiplist_edge->weight = newedge->weight;
+		skiplist_edge->x = newedge->x;
+		skiplist_edge->y = newedge->y;
+		skiplist_edge->next = NULL; 
+		add_edge_sorted(skiplist_edge, newedge, ++skiplist_head_index);
 	}
 		
 	return;
