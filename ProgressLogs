@@ -1,4 +1,8 @@
 Searching...
+===Mon Jan2: Skip List Insert
+kruskal add edge to sorted list routine was taking forever, so i added a skip list. still need to implement search in the skip list. also added some formatted
+print/debug/unittest code for basic graph structure correctness. finishing autocomplete on suffix tree is still on hold.
+
 ===Sun Jan1: 2012
 dfs+articulation vertices code  unit tested. articulation vertices gives us information about when poisonous recommendations creep in, and are pointers to where
 we may want human lexicographers to double check becuase theyre the only words that connect 2 otherwise strongly connected subcomponents. eg:
