@@ -2,7 +2,7 @@ Simulation of a search engine on an acronym database.
 
 
 Module			Unimplemented			Unit tested	Integrated			Multi threaded
-========================================================================================================================
+======================================================================================================================
 
 thread pool		threadpool kill+more		lightly		with disk search		na
 rbt			delete				yes		with dictionary words		no
@@ -51,7 +51,7 @@ Acronym recommendations:
 vague recommendations creep in when there are sets of acronyms that have many links between them, and then only 1 acronym that connects this set with another similar set. the vertex that connects the 2 strongly connected components usually needs closer inspection.  
 
 Data Structures:
-1. My computer refuses to accomodate the array for an adjacency list representation of all the acronyms. the base data structure will have to be some non contiguous memory, like a tree. Ive chose a red black tree (for resons related to multi threading). 
+1. My computer refuses to accomodate the array for an adjacency list representation of all the acronyms. the base data structure will have to be some non contiguous memory, like a tree. Ive chose a red black tree for reasons related to multi threading. 
 2. The 'sorted edge list' in kruskals algorithm gets prohibitively slow on all acronyms if a linked list is used. I replaced it with a skip list.
 3. There wasnt anough memory to store all definitions of acronyms on the heap, mostly because words were constantly being repeated. this led me to a suffix tree.
 4. The edges connected to a vertex are linked lists. 
