@@ -1,13 +1,15 @@
-Simulation of a search engine on an acronym database.
+simulation of a search engine on an acronym database.
 
-Module				Unimplemented			Unit tested		Merged					Multi threaded
 
-thread pool			threadpool kill+more	lightly			with disk search			na
-rbt					delete					yes				with dictionary words		no
-skip list			add						lightly			with sorted edge list		no
-suffix tree			auto complete			yes				needs integration w/ graph	yes
-disk search 		mostly complete			yes				with thread pool			no
-cut-nodes/kruskals 	mostly complete			yes				with graph					no
+Module			Unimplemented			Unit tested	Integrated			Multi threaded
+
+thread pool		threadpool kill+more		lightly		with disk search		na
+rbt			delete				yes		with dictionary words		no
+skip list		add				lightly		with sorted edge list		no
+suffix tree		auto complete			yes		needs integration w/ graph	yes
+disk search fallback	mostly complete			yes		with thread pool		no
+cut-nodes/kruskals 	mostly complete			yes		with graph			no
+
 
 Goals:
 1. reverse lookup of a dictionary word
@@ -21,9 +23,10 @@ eg input: federal
 3. fbh is the only vertex that connectes words in component (fbi, fbh, fsl) to words in component (l337, HACK, cracker)
 4. L337: hacker slang for elite (leet)
 
-Additional Goals: scalabitity, roughly n to nlogn time for operations, multi threaded access to data structures.
+Additional Goals: scalabitity, roughly linear to nlogn time for operations, multi threaded access to data structures.
 
-Applications: one might imagine such a feature going into phones (message acronyms) or social networks (local slang continuously added to graph, providing example usage from friends public news feed). My sole aim however is to understand algorithms and data structures.
+Applications: one might imagine such a feature going into phones (message acronyms) or social networks (local slang continuously added to graph, providing example usage from friends public news feed). 
+My sole aim however is to understand algorithms and data structures.
 
 Algorithm:
 
@@ -31,8 +34,8 @@ build_graph:
 create a graph of all the acronyms
 go through acronyms definition and eviscerate filler words
 look for each word in suffix tree. each leaf of the suffix tree has a list of acronyms with this word in its definition.
-eg: aardvark and aardwolf will have
-	 	 aard
+eg: aadvark and aadwolf will have
+	 aard
         /   \
       vark  wolf - aardwolf acronym list: (AAD,AAC,AAR..)	
 
