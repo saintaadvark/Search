@@ -13,7 +13,7 @@ sol = articulation vertex connecting results in search for bullet to things in (
 from LH pool to ftasb pool).
 
 
-====Sat Dec 31: Happy New Year. ~Commit time: 11.45PM, i remain lifeless.
+====Sat Dec 31: Happy New Year.
 kruskals algorithm to find strongly connected components seems to work. now a search for acronym A should produce a list of recommendations based on the maximum spanning
 tree, unless A is a strongly connected component of its own i.e. the words in its definition are unique. What remains is to connect this framework to both the suffix tree
 and to the dictionary's red and black tree. dfs needs some work, too tired to investiaget but somewhere around adding each edge twice (bidirectionality).
