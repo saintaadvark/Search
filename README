@@ -1,8 +1,8 @@
-simulation of a search engine on an acronym database.
+Simulation of a search engine on an acronym database.
 
 
 Module			Unimplemented			Unit tested	Integrated			Multi threaded
-
+======================================================================================
 thread pool		threadpool kill+more		lightly		with disk search		na
 rbt			delete				yes		with dictionary words		no
 skip list		add				lightly		with sorted edge list		no
@@ -10,8 +10,9 @@ suffix tree		auto complete			yes		needs integration w/ graph	yes
 disk search fallback	mostly complete			yes		with thread pool		no
 cut-nodes/kruskals 	mostly complete			yes		with graph			no
 
-
+======
 Goals:
+======
 1. reverse lookup of a dictionary word
 2. recommendations of other acronyms
 3. places where recommendation list might be poisoned for lexical analysis.
@@ -24,12 +25,12 @@ eg input: federal
 4. L337: hacker slang for elite (leet)
 
 Additional Goals: scalabitity, roughly linear to nlogn time for operations, multi threaded access to data structures.
-
 Applications: one might imagine such a feature going into phones (message acronyms) or social networks (local slang continuously added to graph, providing example usage from friends public news feed). 
 My sole aim however is to understand algorithms and data structures.
 
+==========
 Algorithm:
-
+==========
 build_graph:
 create a graph of all the acronyms
 go through acronyms definition and eviscerate filler words
@@ -46,7 +47,6 @@ weight of edge = sum of ascii in word (i wanted something proportional to the le
 Acronym recommendations: 
 1. highest weight edges connected to an acronym - these are 'stupid' recommendations because they only contain acronyms with the exact same words.
 2. dfs of spanning forest this node is a part of. this will link related words like fbi and fbh in the example.
-
 vague recommendations creep in when there are sets of acronyms that have many links between them, and then only 1 acronym that connects this set with another similar set. the vertex that connects the 2 strongly connected components usually needs closer inspection.  
 
 Data Structures:
